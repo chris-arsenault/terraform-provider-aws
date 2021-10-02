@@ -35,7 +35,7 @@ release:
   disable: false
   github:
     owner: 'chris-arsenault'
-    name: 'https://github.com/chris-arsenault/terraform-provider-aws'
+    name: 'chris-arsenault/terraform-provider-aws'
 signs:
   - artifacts: checksum
     args:
