@@ -48,7 +48,7 @@ func resourceAwsSagemakerModel() *schema.Resource {
 						},
 						"image": {
 							Type:         schema.TypeString,
-							Required:     true,
+							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validateSagemakerImage,
 						},
@@ -138,7 +138,7 @@ func resourceAwsSagemakerModel() *schema.Resource {
 						},
 						"image": {
 							Type:         schema.TypeString,
-							Required:     true,
+							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validateSagemakerImage,
 						},
@@ -169,6 +169,11 @@ func resourceAwsSagemakerModel() *schema.Resource {
 							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validateSagemakerModelDataUrl,
+						},
+						"model_package_name": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
 						},
 					},
 				},
@@ -389,8 +394,16 @@ func resourceAwsSagemakerModelDelete(d *schema.ResourceData, meta interface{}) e
 }
 
 func expandContainer(m map[string]interface{}) *sagemaker.ContainerDefinition {
-	container := sagemaker.ContainerDefinition{
-		Image: aws.String(m["image"].(string)),
+	container := sagemaker.ContainerDefinition{}
+
+	//make image optional
+	if v, ok := m["image"]; ok && v.(string) != "" {
+		container.Image = aws.String(v.(string))
+	}
+
+	//make model package name available
+	if v, ok := m["model_package_name"]; ok && v.(string) != "" {
+		container.ModelPackageName = aws.String(v.(string))
 	}
 
 	if v, ok := m["mode"]; ok && v.(string) != "" {
@@ -445,7 +458,15 @@ func flattenContainer(container *sagemaker.ContainerDefinition) []interface{} {
 
 	cfg := make(map[string]interface{})
 
-	cfg["image"] = aws.StringValue(container.Image)
+	//Make image optional
+	if container.Image != nil {
+		cfg["image"] = aws.StringValue(container.Image)
+	}
+
+	//Make model package name available
+	if container.ModelPackageName != nil {
+		cfg["model_package_name"] = aws.StringValue(container.ModelPackageName)
+	}
 
 	if container.Mode != nil {
 		cfg["mode"] = aws.StringValue(container.Mode)
